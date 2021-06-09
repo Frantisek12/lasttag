@@ -3,16 +3,77 @@
 import os
 import sys
 import git
+import argparse
 
-if len(sys.argv) == 1:
-    print('Path is required, using current path')
-    wd = os.getcwd()
-else:
-    wd = sys.argv[1]
+from glob import glob
 
-repo = git.Repo(wd)
+def arg_init() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        usage="%(prog)s [path to repo] [OPTION]...",
+        description="Print last git tag"
+    )
 
-tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
-latest_tag = tags[-1]
+    parser.add_argument(
+        "dest",
+        nargs='*',
+        default=os.getcwd(),
+        help='Path to repo'
+    )
 
-print(latest_tag)
+    parser.add_argument(
+        "-f", "--fetch",
+        action='store_true',
+        help="If flag set lasttag will fetch from origin first"
+    )
+
+    parser.add_argument(
+        "-p", "--pull",
+        help="If flag set lasttag will only pull from origin"
+    )
+
+    parser.add_argument(
+        "-r", "--recursive",
+        action='store_true',
+        help="if flag is set it will do action recursively in all subfolders where applicable"
+    )
+
+    parser.parse_args(['--fetch'])
+    return parser
+
+def pull(repo_origin):
+    repo_origin.pull()
+
+def get_subfolders(path):
+    return glob(f'{path}/*/')
+
+def set_repo(path):
+    repo = git.Repo(path)
+    origin = repo.remotes.origin
+
+    return origin
+
+if __name__ == '__main__':
+    parser = arg_init()
+    args = parser.parse_args()
+
+    print(args.dest)
+
+    if args.fetch:
+        origin.fetch()
+
+    if args.pull:
+        pull(origin)
+
+    if args.recursive:
+        for sub in get_subfolders(args.dest):
+            os.chdir(sub)
+
+            pull(set_repo(sub))
+
+        print("all paths pulled")
+        quit()
+
+    tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
+    latest_tag = tags[-1]
+
+    print(latest_tag)
