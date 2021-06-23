@@ -46,7 +46,7 @@ def pull(repo_origin):
 def get_subfolders(path):
     return glob(f'{path}/*/')
 
-def set_repo(path):
+def set_origin(path):
     repo = git.Repo(path)
     origin = repo.remotes.origin
 
@@ -57,18 +57,19 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print(args.dest)
+    repo = git.Repo(args.dest)
 
     if args.fetch:
-        origin.fetch()
+        set_origin(args.dest).fetch()
 
     if args.pull:
-        pull(origin)
+        pull(set_origin(args.dest))
 
     if args.recursive:
         for sub in get_subfolders(args.dest):
             os.chdir(sub)
 
-            pull(set_repo(sub))
+            pull(set_origin(sub))
 
         print("all paths pulled")
         quit()
