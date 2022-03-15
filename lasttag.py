@@ -30,6 +30,7 @@ def arg_init() -> argparse.ArgumentParser:
 
     parser.add_argument(
         "-p", "--pull",
+        action='store_true',
         help="If flag set lasttag will only pull from origin"
     )
 
@@ -66,7 +67,7 @@ def get_tag(path):
         print(f'this is not repo path ${path}')
 
     tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
-    latest_tag = tags[-3]
+    latest_tag = tags[-1]
 
     print(latest_tag)
 
@@ -92,6 +93,7 @@ def main():
         quit()
 
     get_tag(args.dest)
+
 
 if __name__ == '__main__':
     main()
