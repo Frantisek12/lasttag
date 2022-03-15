@@ -3,9 +3,11 @@
 import os
 import sys
 import git
+import asyncio
 import argparse
 
 from glob import glob
+
 
 def arg_init() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -40,11 +42,15 @@ def arg_init() -> argparse.ArgumentParser:
     parser.parse_args(['--fetch'])
     return parser
 
+
 def pull(repo_origin):
+    print(f'Pulling ${repo_origin}')
     repo_origin.pull()
+
 
 def get_subfolders(path):
     return glob(f'{path}/*/')
+
 
 def set_origin(path):
     repo = git.Repo(path)
@@ -52,12 +58,24 @@ def set_origin(path):
 
     return origin
 
-if __name__ == '__main__':
+
+def get_tag(path):
+    repo = git.Repo(path)
+    tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
+    latest_tag = tags[-3]
+
+    print(latest_tag)
+
+
+def main():
     parser = arg_init()
     args = parser.parse_args()
 
     print(args.dest)
-    repo = git.Repo(args.dest)
+    try:
+        repo = git.Repo(args.dest)
+    except git.exc.InvalidGitRepositoryError as e:
+        print(f'this is not repo path ${args.dest}')
 
     if args.fetch:
         set_origin(args.dest).fetch()
@@ -68,8 +86,9 @@ if __name__ == '__main__':
     if args.recursive:
         for sub in get_subfolders(args.dest):
             os.chdir(sub)
-
+            print(f'Pulling ${sub}')
             pull(set_origin(sub))
+            get_tag(sub)
 
         print("all paths pulled")
         quit()
@@ -78,3 +97,6 @@ if __name__ == '__main__':
     latest_tag = tags[-1]
 
     print(latest_tag)
+
+if __name__ == '__main__':
+    main()
