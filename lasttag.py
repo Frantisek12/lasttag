@@ -60,7 +60,11 @@ def set_origin(path):
 
 
 def get_tag(path):
-    repo = git.Repo(path)
+    try:
+        repo = git.Repo(path)
+    except git.exc.InvalidGitRepositoryError as e:
+        print(f'this is not repo path ${path}')
+
     tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
     latest_tag = tags[-3]
 
@@ -70,12 +74,6 @@ def get_tag(path):
 def main():
     parser = arg_init()
     args = parser.parse_args()
-
-    print(args.dest)
-    try:
-        repo = git.Repo(args.dest)
-    except git.exc.InvalidGitRepositoryError as e:
-        print(f'this is not repo path ${args.dest}')
 
     if args.fetch:
         set_origin(args.dest).fetch()
@@ -93,10 +91,7 @@ def main():
         print("all paths pulled")
         quit()
 
-    tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
-    latest_tag = tags[-1]
-
-    print(latest_tag)
+    get_tag(args.dest)
 
 if __name__ == '__main__':
     main()
